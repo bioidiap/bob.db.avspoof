@@ -25,7 +25,7 @@
  AVspoof Database Interface for Bob
 ====================================
 
-This package contains the access API and descriptions for the AVspoof_ Database. The database contains speech recordings of 44 persons (31 males and 13 females) performed during the course of two months. The database also contains several spoofing attacks for the recorded speech, including voice conversion, speech synthesis, and replay attacks. Replay attacks were performed using laptop or two different phones. Database can be downloaded and more detailed description can be found `here <https://www.idiap.ch/dataset/avspoof>`_. 
+This package contains the access API and descriptions for the AVspoof_ Database. The database contains speech recordings of 44 persons (31 males and 13 females) performed during the course of two months in four different sessions. The database also contains several spoofing attacks for the recorded speech, including voice conversion, speech synthesis, and replay attacks. Replay attacks were performed using laptop or two different phones. Database can be downloaded and more detailed description can be found `here <https://www.idiap.ch/dataset/avspoof>`_. 
 
 This package contains the Bob_-compliant interface implementation with methods to use the database directly from Python with our certified protocols.
 
