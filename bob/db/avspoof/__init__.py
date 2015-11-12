@@ -8,10 +8,7 @@ The AVspoof Database access methods for Bob
 
 """
 
-from .query import Database
 from .models import Client, File, Protocol, RealAccess, Attack
-from .spoofing import File, Database
-from .verification import File, Database
 
 
 def get_config():

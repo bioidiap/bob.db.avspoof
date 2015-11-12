@@ -3,9 +3,13 @@
 # Pavel Korshunov <pavel.korshunov@idiap.ch>
 # Wed 19 Aug 13:43:50 2015
 
-"""AVSpoof database implementation as antispoofing.utils.db.Database"""
+"""
+  AVspoof database implementation of antispoofing.utils.db.Database interface. This interface is useful in
+  anti-spoofing experiments. It is an extension of an SQL-based interface, which deals
+  with AVspoof database directly.
+"""
 
-from .query import Database as AVSpoofDatabase
+from .query import Database as AVspoofDatabase
 import antispoofing.utils
 import six
 
@@ -13,26 +17,38 @@ import six
 class File(antispoofing.utils.db.File):
     def __init__(self, f):
         """
-        Initializes this File object with our own File equivalent
+        Initializes this File object with an File equivalent from the underlying SQl-based interface for
+        AVspoof database
         """
 
         self.__f = f
 
     # type object 'File' has no attribute 'audiofile'
     def videofile(self, directory=None):
+        """
+        This method is used to return an audio file (at the moment, AVspoof contains audio files only).
+        We use 'videofile' method here because antispoofing.utils.db.File interface does not define an audiofile,
+        which makes things a little ugly.
+
+        :return: Audio file from AVspoof database.
+        """
         return self.__f.audiofile(directory=directory)
 
-    videofile.__doc__ = antispoofing.utils.db.File.videofile.__doc__
-
     def facefile(self, directory=None):
+        """
+        A legacy method from antispoofing.utils.db.File interface.
+        Since there are no faces in AVspoof, this method returns None.
+        :return: None
+        """
         return None
-
-    facefile.__doc__ = antispoofing.utils.db.File.facefile.__doc__
 
     def bbx(self, directory=None):
+        """
+        A legacy method from antispoofing.utils.db.File interface.
+        Since there are no bounding boxes in AVspoof, this method returns None.
+        :return: None
+        """
         return None
-
-    bbx.__doc__ = antispoofing.utils.db.File.bbx.__doc__
 
     def load(self, directory=None, extension='.hdf5'):
         return self.__f.load(directory=directory, extension=extension)
@@ -62,20 +78,20 @@ class File(antispoofing.utils.db.File):
 
 
 class Database(antispoofing.utils.db.Database):
-    """ Implements API for antispoofing interface of AVspoof database"""
+    """ Implements API of antispoofing interface for AVspoof database"""
 
     def __init__(self, args=None):
-        self.__db = AVSpoofDatabase()
+        self.__db = AVspoofDatabase()
 
         self.__kwargs = {}
 
         if args is not None:
             self.__kwargs = {
-                'protocol': args.avspoof_protocol,
-                'support': args.avspoof_support,
-                'devices': args.avspoof_devices,
-                'attackdevices': args.avspoof_attackdevices,
-                'clients': args.avspoof_client if args.avspoof_client else None,
+                'protocol': args.AVspoof_protocol,
+                'support': args.AVspoof_support,
+                'devices': args.AVspoof_devices,
+                'attackdevices': args.AVspoof_attackdevices,
+                'clients': args.AVspoof_client if args.AVspoof_client else None,
             }
 
     __init__.__doc__ = antispoofing.utils.db.Database.__init__.__doc__
@@ -92,12 +108,16 @@ class Database(antispoofing.utils.db.Database):
     def get_protocols(self):
         return [k.name for k in self.__db.protocols()]
 
+    get_protocols.__doc__ = antispoofing.utils.db.Database.get_protocols.__doc__
+
     def get_attack_types(self):
         # In the case of this DB, this method does not precisely return the attack types
         return [k.name for k in self.__db.protocols()]
 
+    get_attack_types.__doc__ = antispoofing.utils.db.Database.get_attack_types.__doc__
+
     def create_subparser(self, subparser, entry_point_name):
-        from .models import Attack as AVSpoofAttackModel, File as AVSpoofFileModel
+        from .models import Attack as AVspoofAttackModel, File as AVspoofFileModel
         from argparse import RawDescriptionHelpFormatter
 
         ## remove '.. ' lines from rst
@@ -110,23 +130,23 @@ class Database(antispoofing.utils.db.Database):
 
         protocols = [k.name for k in self.__db.protocols()]
         p.add_argument('--protocol', type=str, default='grandtest',
-                       choices=protocols, dest="avspoof_protocol", nargs='+',
+                       choices=protocols, dest="AVspoof_protocol", nargs='+',
                        help='The protocol type may be specified instead of the the id switch to subselect a smaller number of files to operate on (defaults to "%(default)s")')
 
-        supports = AVSpoofAttackModel.attack_support_choices
-        p.add_argument('--support', type=str, dest='avspoof_support', choices=supports,
+        supports = AVspoofAttackModel.attack_support_choices
+        p.add_argument('--support', type=str, dest='AVspoof_support', choices=supports,
                        help="If you would like to select a specific support to be used, use this option (if unset, the default, use all)")
 
-        attackdevices = AVSpoofAttackModel.attack_device_choices
-        p.add_argument('--attackdevices', type=str, dest='avspoof_attackdevices', choices=attackdevices,
+        attackdevices = AVspoofAttackModel.attack_device_choices
+        p.add_argument('--attackdevices', type=str, dest='AVspoof_attackdevices', choices=attackdevices,
                        help="If you would like to select a specific attack device to be used, use this option (if unset, the default, use all)")
 
-        devices = AVSpoofFileModel.device_choices
-        p.add_argument('--device', type=str, choices=devices, dest='avspoof_devices',
+        devices = AVspoofFileModel.device_choices
+        p.add_argument('--device', type=str, choices=devices, dest='AVspoof_devices',
                        help="Types of devices used during recording (if unset, the default, use all)")
 
         identities = [k.id for k in self.__db.clients()]
-        p.add_argument('--client', type=int, action='append', choices=identities, dest='avspoof_client',
+        p.add_argument('--client', type=int, action='append', choices=identities, dest='AVspoof_client',
                        help="Client identifier (if unset, the default, use all)")
 
         p.set_defaults(name=entry_point_name)
@@ -139,17 +159,22 @@ class Database(antispoofing.utils.db.Database):
     def name(self):
         from .driver import Interface
         i = Interface()
-        return "AVSpoof Database (%s)" % i.name()
+        return "AVspoof Database (%s)" % i.name()
+    name.__doc__ = antispoofing.utils.db.Database.name.__doc__
 
     def short_name(self):
         from .driver import Interface
         i = Interface()
         return i.name()
 
+    short_name.__doc__ = antispoofing.utils.db.Database.short_name.__doc__
+
     def version(self):
         from .driver import Interface
         i = Interface()
         return i.version()
+
+    version.__doc__ = antispoofing.utils.db.Database.version.__doc__
 
     def short_description(self):
         return "Speech spoofing database produced at Idiap, Switzerland"
@@ -162,6 +187,11 @@ class Database(antispoofing.utils.db.Database):
     long_description.__doc__ = antispoofing.utils.db.Database.long_description.__doc__
 
     def implements_any_of(self, propname):
+        """
+        Only support for audio files is implemented/
+        :param propname: The type of data-support, which is checked if it contains 'audio'
+        :return: True if propname is None, it is equal to or contains 'audio', otherwise False.
+        """
         if isinstance(propname, (tuple, list)):
             return 'audio' in propname
         elif propname is None:
@@ -179,8 +209,21 @@ class Database(antispoofing.utils.db.Database):
         else:
             return [client.id for client in clients if client.set == group]
 
+    get_clients.__doc__ = antispoofing.utils.db.Database.get_clients.__doc__
+
     def get_data(self, group):
-        """Returns either all objects or objects for a specific group"""
+        """
+        Returns either all objects or objects for a specific group
+
+        :param group:
+            The groups corresponds to the subset of the AVspoof data that is used for either training,
+            development, or evaluation tasks.
+            It can be 'train', 'devel', 'test', or their tuple.
+
+        :return:
+            Two lists of File objects (antispoofing.utils.db.File) in the form of [real, attack].
+            The first list - real or genuine data and the second list is attacks or spoofed data.
+        """
         real = dict(self.__kwargs)
         real.update({'groups': group, 'cls': 'real'})
         attack = dict(self.__kwargs)
@@ -190,10 +233,9 @@ class Database(antispoofing.utils.db.Database):
 
     def get_enroll_data(self, group=None):
         """Returns either all enrollment objects or enrollment objects for a specific group"""
-        #    real = dict(self.__kwargs)
-        #    real.update({'groups': group, 'cls': 'enroll'})
-        #    return [File(k) for k in self.__db.objects(**real)]
         return get_data(group=group)
+
+    get_enroll_data.__doc__ = antispoofing.utils.db.Database.get_enroll_data.__doc__
 
     def get_train_data(self):
         return self.get_data('train')
@@ -212,6 +254,8 @@ class Database(antispoofing.utils.db.Database):
 
     def get_test_filters(self):
         return ('attackdevice', 'support', 'device')
+
+    get_test_filters.__doc__ = antispoofing.utils.db.Database.get_test_filters.__doc__
 
     def get_filtered_test_data(self, filter):
 
@@ -261,6 +305,8 @@ class Database(antispoofing.utils.db.Database):
                 real, [k for k in attack if attackdevice_filter(k, 'physical_access_HQ_speaker')]),
                 'physical_access': (real, [k for k in attack if attackdevice_filter(k, 'physical_access')]),
             }
+
+    get_filtered_test_data.__doc__ = antispoofing.utils.db.Database.get_filtered_test_data.__doc__
 
     def get_filtered_devel_data(self, filter):
 
@@ -314,8 +360,9 @@ class Database(antispoofing.utils.db.Database):
         raise RuntimeError("filter parameter should specify a valid filter among `%s'" % \
                            self.get_test_filters())
 
+    get_filtered_devel_data.__doc__ = antispoofing.utils.db.Database.get_filtered_devel_data.__doc__
+
     def get_all_data(self):
         return self.get_data(None)
 
-    # get_all_data.__doc__ = DatabaseBase.get_all_data.__doc__
     get_all_data.__doc__ = antispoofing.utils.db.Database.get_all_data.__doc__

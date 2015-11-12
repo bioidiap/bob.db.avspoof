@@ -4,8 +4,9 @@
 # Mon 12 Oct 14:43:22 CEST 2015
 
 """
-  AVSpoof database implementation of bob.db.verification.utils.Database interface.
-  It is essentially a wrapper around a Database implemented in query.py, referred to as AVSpoofDatabase
+  AVspoof database implementation of bob.db.verification.utils.Database interface.
+  It is an extension of an SQL-based database interface, which directly talks to AVspoof database, for
+  verification experiments (good to use in bob.bio.base framework).
 """
 
 from . import __doc__ as long_description
@@ -14,9 +15,11 @@ import bob.db.verification.utils
 
 
 class File(bob.db.verification.utils.File):
+
     def __init__(self, f):
         """
-        Initializes this File object with our own File equivalent
+        Initializes this File object with an File equivalent from the underlying SQl-based interface for
+        AVspoof database.
         """
         bob.db.verification.utils.File.__init__(self, client_id=f.client_id, path=f.path, file_id=f.id)
 
@@ -25,7 +28,13 @@ class File(bob.db.verification.utils.File):
     def load(self, directory=None, extension='.hdf5'):
         return self.__f.load(directory=directory, extension=extension)
 
+    load.__doc__ = bob.db.avspoof.query.File.load.__doc__
+
     def get_client_id(self):
+        """
+        Get ID of the client that this file belongs to.
+        """
+
         return self.__f.client_id
 
 
