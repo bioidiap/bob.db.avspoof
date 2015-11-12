@@ -21,9 +21,9 @@
    :target: https://www.idiap.ch/dataset/avspoof
 
 
-===================================================
+====================================
  AVspoof Database Interface for Bob
-===================================================
+====================================
 
 This package contains the access API and descriptions for the AVspoof_ Database. The database contains speech recordings of 44 persons (31 males and 13 females) performed during the course of two months. The database also contains several spoofing attacks for the recorded speech, including voice conversion, speech synthesis, and replay attacks. Replay attacks were performed using laptop or two different phones. Database can be downloaded and more detailed description can be found `here <https://www.idiap.ch/dataset/avspoof>`_. 
 
@@ -37,12 +37,12 @@ For Bob_ to be able to work properly, some dependent packages are required to be
 Please make sure that you have read the `Dependencies <https://github.com/idiap/bob/wiki/Dependencies>`_ for your operating system.
 
 Getting the data
--------------------------
+----------------
 The data can be downloaded from its original URL ( https://www.idiap.ch/dataset/avspoof ) for which you need to sign the EULA.
 
 
 Documentation
-----------------------
+-------------
 For further documentation on this package, please read the `Stable Version <http://pythonhosted.org/bob.db.avspoof/index.html>`_ or the `Latest Version <https://www.idiap.ch/software/bob/docs/latest/bioidiap/bob.db.avspoof/master/index.html>`_ of the documentation.
 For a list of tutorials on this or the other packages ob Bob_, or information on submitting issues, asking questions and starting discussions, please visit its website.
 
