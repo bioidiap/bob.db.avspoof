@@ -20,7 +20,6 @@
 """A few checks at the avspoof attack database.
 """
 
-import os, sys
 import unittest
 from .query import Database
 from .models import *

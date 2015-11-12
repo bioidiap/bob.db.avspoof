@@ -20,6 +20,8 @@
 """A few checks at the avspoof attack database.
 """
 
+from __future__ import print_function
+
 from .query import Database
 from .models import *
 
@@ -51,10 +53,10 @@ class AVSpoofDatabaseTest():
     def queryAttackType(self, protocol, N, devices=None, support=None, attackdevices=None):
         db = Database()
         f = db.objects(cls='real', protocol=protocol, devices=devices, clients=N)
-        print "Real set %s" % str(f)
+        print ("Real set %s" % str(f))
         f = db.objects(cls='attack', protocol=protocol, support=support, devices=devices,
                        attackdevices=attackdevices, clients=N)
-        print "Attack set %s " % str(f)
+        print ("Attack set %s " % str(f))
 
     #        train = db.objects(cls='attack', groups='train', protocol=protocol)
     #        dev = db.objects(cls='attack', groups='devel', protocol=protocol)
@@ -62,27 +64,27 @@ class AVSpoofDatabaseTest():
 
     @db_available
     def test01_queryAttacks(self):
-        print "test01_queryAttacks, grandtest"
+        print ("test01_queryAttacks, grandtest")
         self.queryAttackType('grandltest', N=1)
 
     @db_available
     def test02_queryReplayAttacks(self):
-        print "test02_queryReplayAttacks, replay"
+        print ("test02_queryReplayAttacks, replay")
         self.queryAttackType(support='replay', N=1)
 
     @db_available
     def test03_queryPhone2AndReplayAttacks(self):
-        print "test03_queryPhone2AndReplayAttacks, replay"
+        print ("test03_queryPhone2AndReplayAttacks, replay")
         self.queryAttackType(support='replay', 60)
 
     @db_available
     def test04_queryPhone2ReplayAttacks(self):
-        print "test04_queryPhone2ReplayAttacks, replay, phone2 only"
+        print ("test04_queryPhone2ReplayAttacks, replay, phone2 only")
         self.queryAttackType(support='replay', attackdevices='phone2', N=60)
 
     @db_available
     def test05_queryReplayLaptopAttacks(self):
-        print "test05_queryReplayLaptopAttacks, replay, laptop only"
+        print ("test05_queryReplayLaptopAttacks, replay, laptop only")
         self.queryAttackType(support='replay', N=60, devices=None, attackdevices='laptop')
 
 

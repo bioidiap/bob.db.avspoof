@@ -6,14 +6,11 @@
 """Table models and functionality for the AVSpoof DB.
 """
 
-import sqlalchemy
 import os
 from sqlalchemy import Table, Column, Integer, String, ForeignKey
 from bob.db.base.sqlalchemy_migration import Enum, relationship
-import bob.db.base.utils
 from sqlalchemy.orm import backref
 from sqlalchemy.ext.declarative import declarative_base
-# import numpy
 import bob
 
 Base = declarative_base()
@@ -46,7 +43,6 @@ class Client(Base):
         self.set = set
 
     def __repr__(self):
-        #        print("Client: __repr__ id: %d, gender: %s in set %s" % (self.id, self.gender, self.set))
         return "Client('%d', '%s', '%s')" % (self.id, self.gender, self.set)
 
 

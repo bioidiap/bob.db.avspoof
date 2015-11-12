@@ -6,7 +6,8 @@
 """This script creates the AVSpoof database in a single pass.
 """
 
-import os
+from __future__ import print_function
+
 import fnmatch
 
 from .models import *
@@ -47,9 +48,8 @@ def add_real_lists(session, protodir, verbose):
         for fname in open(filename, 'rt'):
             s = fname.strip()
             if not s: continue  # emtpy line
-            if verbose: print s
+            if verbose: print (s)
             filefields = parse_real_filename(s)
-            #            print session.query(Client).all()
             filefields[0] = session.query(Client).filter(Client.id == filefields[0]).one()
             #                                                    Client.gender == filefields[1]).one()
             file = File(*filefields)
@@ -114,13 +114,12 @@ def add_attack_lists(session, protodir, verbose):
                 device = v[5]
                 speech = v[6]
 
-            print ([client_id, gender, path, device, sess, speech], [attack_support, attack_device])
             return [client_id, gender, path, device, sess, speech], [attack_support, attack_device]
 
         for fname in open(filename, 'rt'):
             s = fname.strip()
             if not s: continue  # emtpy line
-            if verbose: print s
+            if verbose: print (s)
             filefields, attackfields = parse_attack_filename(s)
             filefields[0] = session.query(Client).filter(
                 Client.id == filefields[0] and \
@@ -166,8 +165,8 @@ def define_protocols(session, protodir, verbose):
                 alt_real = os.path.join(protodir, 'real-%s.txt' % (grp,))
                 if not os.path.exists(alt_real):
                     if verbose:
-                        print(
-                        "Not considering protocol %s as real list '%s' or '%s' were not found" % (s[1], real, alt_real))
+                        print("Not considering protocol %s as real list '%s' or '%s' were not found" %
+                              (s[1], real, alt_real))
                     consider = False
                 else:
                     real = alt_real
@@ -227,7 +226,7 @@ def create(args):
 
     if args.recreate:
         if args.verbose and os.path.exists(dbfile):
-            print(('unlinking %s...' % dbfile))
+            print('unlinking %s...' % dbfile)
         if os.path.exists(dbfile): os.unlink(dbfile)
 
     if not os.path.exists(os.path.dirname(dbfile)):
