@@ -11,6 +11,7 @@
 
 from . import __doc__ as long_description
 from .query import Database as AVSpoofDatabase
+from .query import File as AVSpoofFile
 import bob.db.verification.utils
 
 
@@ -28,7 +29,7 @@ class File(bob.db.verification.utils.File):
     def load(self, directory=None, extension='.hdf5'):
         return self.__f.load(directory=directory, extension=extension)
 
-    load.__doc__ = bob.db.avspoof.query.File.load.__doc__
+    load.__doc__ = AVSpoofFile.load.__doc__
 
     def get_client_id(self):
         """
