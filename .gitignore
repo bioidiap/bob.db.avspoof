@@ -17,4 +17,4 @@ dist
 build
 *.egg
 src/
-.DS_Store
+db.sql3
