@@ -73,25 +73,25 @@ class Database(object):
         Keyword parameters:
 
         support
-            One of the valid attack types as returned by attack_supports() or all,
+            One of the valid attack types as returned by models.Attack.attack_supports() or all,
             as a tuple.  If you set this parameter to an empty string or the value
-            None, we use reset it to the default, which is to get all.
+            None, we reset it to the default, which is to get all.
 
         protocol
             The protocol for the attack. One of the ones returned by protocols(). If
-            you set this parameter to an empty string or the value None, we use reset
+            you set this parameter to an empty string or the value None, we reset
             it to the default, "grandtest".
 
         groups
-            One of the protocolar subgroups of data as returned by groups() or a
+            One of the protocol subgroups of data as returned by groups() or a
             tuple with several of them.  If you set this parameter to an empty string
-            or the value None, we use reset it to the default which is to get all.
+            or the value None, we reset it to the default which is to get all.
 
         cls
-            Either "attack" or "real" a combination of those (in a
+            Either "attack", "real", "enroll", "probe", or a combination of those (in a
             tuple). Defines the class of data to be retrieved.  If you set this
-            parameter to an empty string or the value None, we use reset it to the
-            default, ("real", "attack").
+            parameter to an empty string or the value None, we reset it to the
+            default, ("real", "attack", "enroll", "probe").
 
         devices
             One of the devices used to record the data (laptop, phone1, and phone2)
@@ -99,7 +99,7 @@ class Database(object):
 
         clients
             If set, should be a single integer or a list of integers that define the
-            client identifiers from which files should be retrieved. If ommited, set
+            client identifiers from which files should be retrieved. If omitted, set
             to None or an empty list, then data from all clients is retrieved.
 
         Returns: A list of :py:class:`.File` objects.
@@ -245,7 +245,7 @@ class Database(object):
             An AVspoof protocol.
 
         groups
-            The groups to which the subjects attached to the models belong ('dev', 'eval', 'world')
+            The groups to which the subjects attached to the models belong ('train', 'devel', 'eval')
 
         gender
             The gender to consider ('male', 'female')
@@ -385,6 +385,7 @@ class Database(object):
         self.assert_validity()
 
         fobj = self.session.query(File).filter(File.path.in_(paths))
+        retval = []
         for p in paths:
             retval.extend([k.id for k in fobj if k.path == p])
         return retval

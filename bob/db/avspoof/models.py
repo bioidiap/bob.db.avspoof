@@ -232,7 +232,7 @@ class Protocol(Base):
         self.name = name
 
     def __repr__(self):
-        return "Protocol('%s')" % (self.name,)
+        return "Protocol('%s')" % self.name
 
 
 class RealAccess(Base):
@@ -258,7 +258,7 @@ class RealAccess(Base):
         self.file = file
 
     def __repr__(self):
-        return "RealAccess('%s')" % (self.file.path)
+        return "RealAccess('%s')" % self.file.path
 
 
 class Attack(Base):
@@ -299,4 +299,4 @@ class Attack(Base):
         self.attack_device = attack_device
 
     def __repr__(self):
-        return "<Attack('%s')>" % (self.file.path)
+        return "Attack('%s')" % self.file.path

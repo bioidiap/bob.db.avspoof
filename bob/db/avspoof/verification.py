@@ -241,7 +241,7 @@ class Database(bob.db.verification.utils.Database):
                 correct_purposes = []
                 for purpose in purposes:
                     if purpose == 'probe':
-                        correct_purposes += ['train']
+                        correct_purposes += ['attack']
                     else:
                         correct_purposes += [purpose]
             elif purposes == 'probe':
