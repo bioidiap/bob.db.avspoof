@@ -9,7 +9,7 @@
    :target: https://www.idiap.ch/software/bob/docs/latest/bioidiap/bob.db.avspoof/master/index.html
 .. image:: https://travis-ci.org/bioidiap/bob.db.avspoof.svg?branch=master
    :target: https://travis-ci.org/bioidiap/bob.db.avspoof
-.. image:: https://coveralls.io/repos/bioidiap/bob.db.avspoof/badge.png
+.. image:: https://coveralls.io/repos/bioidiap/bob.db.avspoof/badge.svg
    :target: https://coveralls.io/r/bioidiap/bob.db.avspoof
 .. image:: https://img.shields.io/badge/github-master-0000c0.png
    :target: https://github.com/bioidiap/bob.db.avspoof/tree/master
@@ -25,7 +25,7 @@
  AVspoof Database Interface for Bob
 ====================================
 
-This package contains the access API and descriptions for the AVspoof_ Database. The database contains speech recordings of 44 persons (31 males and 13 females) performed during the course of two months in four different sessions. The database also contains several spoofing attacks for the recorded speech, including voice conversion, speech synthesis, and replay attacks. Replay attacks were performed using laptop or two different phones. Database can be downloaded and more detailed description can be found `here <https://www.idiap.ch/dataset/avspoof>`_. 
+This package contains the access API and descriptions for the AVspoof_ Database. The database contains speech recordings of 44 persons (31 males and 13 females) performed during the course of two months in four different sessions. The database also contains several spoofing attacks for the recorded speech, including voice conversion, speech synthesis, and replay attacks. Replay attacks were performed using laptop or two different phones. Database can be downloaded and more detailed description can be found `here <https://www.idiap.ch/dataset/avspoof>`_.
 
 This package contains the Bob_-compliant interface implementation with methods to use the database directly from Python with our certified protocols.
 
