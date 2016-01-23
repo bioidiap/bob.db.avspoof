@@ -21,7 +21,7 @@ setup(
     name='bob.db.avspoof',
     version=version,
     description='Audio AVspoof Attack Database Access API for Bob',
-    url='http://pypi.python.org/pypi/bob.db.avspoof',
+    url='http://github.com/bioidiap/bob.db.avspoof',
     license='GPLv3',
     author='Pavel Korshunov',
     author_email='pavel.korshunov@idiap.ch',
