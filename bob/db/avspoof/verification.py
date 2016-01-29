@@ -187,8 +187,10 @@ class Database(bob.db.verification.utils.Database):
         Keyword Parameters:
 
         protocol
-            Only two protocols are implemented: 'licit' and 'spoof'. Any other protocol's name will be
-            assumed to be and converted to 'licit'.
+            Each valid protocol of the AVspoof database can have a '-licit' or '-spoof' appended to it.
+            If the '-licit' is appended, then the only real or genuine data of the protocol will be used.
+            If '-spoof' is appended, then attacks or spoofed data will be used as the probe set.
+            If nothing is appended, then 'licit' option is assumed by default.
 
         purposes
             The purposes can be either 'enroll', 'probe', or their tuple.
@@ -214,25 +216,45 @@ class Database(bob.db.verification.utils.Database):
 
         Returns: A set of Files with the specified properties.
         """
-
+        # convert group names from the conventional in verification experiments to the internal database names
         matched_groups = self._convert_group_names(groups)
 
-        # by default we assume licit protocol, which we actually express via purposes parameters
-        # this is the difference in terminology. In DB, protocol is grandtest (all data), while for
-        # verification experiments, there are two types licit and spoof - this is expressed through purposes variable
-        if not (protocol == 'licit' or protocol == 'spoof'):
-            protocol = 'licit'
+        # this conversion of the protocol with appended '-licit' or '-spoof' is a hack for verification experiments.
+        # To adapt spoofing databases to the verification experiments, we need to be able to split a given protocol
+        # into two parts: when data for licit (only real/genuine data is used) and data for spoof (attacks are used instead
+        # of real data) is used in the experiment. Hence, we use this trick with appending '-licit' or '-spoof' to the
+        # protocol name, so we can distinguish these two scenarios.
+        # By default, if nothing is appended, we assume licit protocol.
+        # The distinction between licit and spoof is expressed via purposes parameters
+        # this is the difference in terminology.
+
+
+        # lets check if we have an appendix to the protocol name
+        appendix = None
+        if protocol:
+            appendix = protocol.split('-')[-1]
+
+        # if protocol was empty or there was no correct appendix, we just assume the 'licit' option
+        if not (appendix == 'licit' or appendix == 'spoof'):
+            appendix = 'licit'
+        else:
+            # put back everything except the appendix into the protocol
+            protocol = '-'.join(protocol.split('-')[:-1])
+
+        # if protocol was empty, we set it to the grandtest, which is the whole data
+        if not protocol:
+            protocol = 'grandtest'
 
         correct_purposes = purposes
         # licit protocol is for real access data only
-        if protocol == 'licit':
+        if appendix == 'licit':
             # by default we assume all real data
             if purposes is None:
                 correct_purposes = ('enroll', 'probe')
 
         # spoof protocol uses real data for enrollment and spoofed data for probe
         # so, probe set is the same as attack set
-        if protocol == 'spoof':
+        if appendix == 'spoof':
             # by default we return all data (enroll:realdata + probe:attackdata)
             if purposes is None:
                 correct_purposes = ('enroll', 'attack')
@@ -247,12 +269,12 @@ class Database(bob.db.verification.utils.Database):
             elif purposes == 'probe':
                 correct_purposes = ('attack',)
 
+        # now, query the actual AVspoof database
         if 'attack' in correct_purposes:
-            objects = self.__db.objects(groups=matched_groups, cls=correct_purposes, clients=model_ids, gender=gender,
-                                     attackdevices=device)
-
+            objects = self.__db.objects(protocol=protocol, groups=matched_groups, cls=correct_purposes,
+                                        clients=model_ids, gender=gender, attackdevices=device)
         else:
-            objects = self.__db.objects(groups=matched_groups, cls=correct_purposes, clients=model_ids, gender=gender,
-                                     devices=device)
+            objects = self.__db.objects(protocol=protocol, groups=matched_groups, cls=correct_purposes,
+                                        clients=model_ids, gender=gender, devices=device)
         # make sure to return verification.utils representation of a file, not the database one
         return [File(f) for f in objects]
