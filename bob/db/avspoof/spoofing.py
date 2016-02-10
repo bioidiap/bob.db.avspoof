@@ -233,7 +233,7 @@ class Database(antispoofing.utils.db.Database):
 
     def get_enroll_data(self, group=None):
         """Returns either all enrollment objects or enrollment objects for a specific group"""
-        return get_data(group=group)
+        return self.get_data(group=group)
 
     get_enroll_data.__doc__ = antispoofing.utils.db.Database.get_enroll_data.__doc__
 
@@ -299,7 +299,7 @@ class Database(antispoofing.utils.db.Database):
                 'laptop': (real, [k for k in attack if attackdevice_filter(k, 'laptop')]),
                 'laptop_HQ_speaker': (real, [k for k in attack if attackdevice_filter(k, 'laptop_HQ_speaker')]),
                 'phone1': (real, [k for k in attack if attackdevice_filter(k, 'phone1')]),
-                'phone1': (real, [k for k in attack if attackdevice_filter(k, 'phone1')]),
+                'phone2': (real, [k for k in attack if attackdevice_filter(k, 'phone2')]),
                 'logical_access': (real, [k for k in attack if attackdevice_filter(k, 'logical_access')]),
                 'physical_access_HQ_speaker': (
                 real, [k for k in attack if attackdevice_filter(k, 'physical_access_HQ_speaker')]),
@@ -350,15 +350,13 @@ class Database(antispoofing.utils.db.Database):
                 'laptop': (real, [k for k in attack if attackdevice_filter(k, 'laptop')]),
                 'laptop_HQ_speaker': (real, [k for k in attack if attackdevice_filter(k, 'laptop_HQ_speaker')]),
                 'phone1': (real, [k for k in attack if attackdevice_filter(k, 'phone1')]),
-                'phone1': (real, [k for k in attack if attackdevice_filter(k, 'phone1')]),
+                'phone2': (real, [k for k in attack if attackdevice_filter(k, 'phone2')]),
                 'logical_access': (real, [k for k in attack if attackdevice_filter(k, 'logical_access')]),
-                'physical_access_HQ_speaker': (
-                real, [k for k in attack if attackdevice_filter(k, 'physical_access_HQ_speaker')]),
+                'physical_access_HQ_speaker': (real, [k for k in attack if attackdevice_filter(k, 'physical_access_HQ_speaker')]),
                 'physical_access': (real, [k for k in attack if attackdevice_filter(k, 'physical_access')]),
             }
 
-        raise RuntimeError("filter parameter should specify a valid filter among `%s'" % \
-                           self.get_test_filters())
+        raise RuntimeError("Filter parameter should specify a valid filter among `%s'", self.get_test_filters())
 
     get_filtered_devel_data.__doc__ = antispoofing.utils.db.Database.get_filtered_devel_data.__doc__
 
