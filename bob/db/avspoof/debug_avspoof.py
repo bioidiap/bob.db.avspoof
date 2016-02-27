@@ -65,7 +65,7 @@ class AVSpoofDatabaseTest():
     @db_available
     def test01_queryAttacks(self):
         print ("test01_queryAttacks, grandtest")
-        self.queryAttackType('grandltest', N=1)
+        self.queryAttackType('grandtest', N=1)
 
     @db_available
     def test02_queryReplayAttacks(self):
