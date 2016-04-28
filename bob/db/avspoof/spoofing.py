@@ -75,6 +75,12 @@ class File(antispoofing.utils.db.File):
 
     is_real.__doc__ = antispoofing.utils.db.File.is_real.__doc__
 
+    def get_attacktype(self):
+        """
+        Attack type of this file
+        :return: the type of attack (specified in the File of the database Model)
+        """
+        return self.__f.get_attack()
 
 
 class Database(antispoofing.utils.db.Database):
