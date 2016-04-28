@@ -149,7 +149,7 @@ class File(Base):
         """Returns the attack object equivalent to this file or raise"""
         if len(self.attack) == 0:
             raise RuntimeError("%s is not an attack" % self)
-        return self.attack[0]
+        return self.attack[0].attack_support + '_' + self.attack[0].attack_device
 
     def load(self, directory=None, extension='.hdf5'):
         """Loads the data at the specified location and using the given extension.
