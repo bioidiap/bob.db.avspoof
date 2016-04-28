@@ -213,32 +213,33 @@ class AVSpoofDatabaseTest(unittest.TestCase):
         f = db.objects(cls='attack', support=attack, attackdevices=device, protocol=protocol)
         self.assertEqual(len(f), N)
         for k in f[:10]:  # only the 10 first...
-            self.assertTrue(isinstance(k.get_attack(), Attack))
+            k_attack = str(k.get_attack())
+            self.assertTrue((attack+'_'+device in k_attack))
 
 
     @db_available
     def test20_queryReplayAttacks(self):
-        self.queryAttackType('grandtest', 'replay', None, 8800)
+        self.queryAttackType('grandtest', 'replay', '', 8800)
 
     @db_available
     def test21_queryReplayAttacksLogicalAccess(self):
-        self.queryAttackType('logical_access', 'replay', None, 0)
+        self.queryAttackType('logical_access', 'replay', '', 0)
 
     @db_available
     def test22_queryLogicalAttacksPhysicalAccess(self):
-        self.queryAttackType('physical_access', None, 'logical_access', 0)
+        self.queryAttackType('physical_access', '', 'logical_access', 0)
 
     @db_available
     def test23_queryLogicalAttacks(self):
-        self.queryAttackType('grandtest', None, 'logical_access', 55840)
+        self.queryAttackType('grandtest', '', 'logical_access', 55840)
 
     @db_available
     def test24_queryLogicalAttacksLogicalAccess(self):
-        self.queryAttackType('logical_access', None, 'logical_access', 55840)
+        self.queryAttackType('logical_access', '', 'logical_access', 55840)
 
     @db_available
     def test25_queryReplayAttacksPhysicalAccess(self):
-        self.queryAttackType('physical_access', 'replay', None, 8800)
+        self.queryAttackType('physical_access', 'replay', '', 8800)
 
     @db_available
     def test26_queryLaptopHQspeaker(self):
@@ -254,8 +255,8 @@ class AVSpoofDatabaseTest(unittest.TestCase):
 
     @db_available
     def test29_queryPhysicalAccess(self):
-        self.queryAttackType('physical_access', None, 'physical_access', 55840)
+        self.queryAttackType('physical_access', '', 'physical_access', 55840)
 
     @db_available
     def test30_queryPhysicalAccessHQspeaker(self):
-        self.queryAttackType('physical_access', None, 'physical_access_HQ_speaker', 55840)
+        self.queryAttackType('physical_access', '', 'physical_access_HQ_speaker', 55840)
