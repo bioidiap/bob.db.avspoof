@@ -272,9 +272,9 @@ class Database(bob.db.verification.utils.Database):
         # now, query the actual AVspoof database
         if 'attack' in correct_purposes:
             objects = self.__db.objects(protocol=protocol, groups=matched_groups, cls=correct_purposes,
-                                        clients=model_ids, gender=gender, attackdevices=device)
+                                        clients=model_ids, gender=gender, attack_devices=device)
         else:
             objects = self.__db.objects(protocol=protocol, groups=matched_groups, cls=correct_purposes,
-                                        clients=model_ids, gender=gender, devices=device)
+                                        clients=model_ids, gender=gender, recording_devices=device)
         # make sure to return verification.utils representation of a file, not the database one
         return [File(f) for f in objects]

@@ -55,10 +55,11 @@ class AVSpoofDatabaseTest(unittest.TestCase):
         self.assertEqual(len(f), Ntrain+Ndevel+Ntest)
         for k in f[:10]:  # only the 10 first...
             if cls == 'attack':
-                k.get_attack()
-                self.assertRaises(RuntimeError, k.get_realaccess)
+                attack_name = k.get_attack()
+                self.assertNotEqual(attack_name, 'undefined_undefined')
+                self.assertTrue(k.is_attack())
             else:
-                self.assertTrue(isinstance(k.get_realaccess(), RealAccess))
+                self.assertTrue(k.is_real())
 
         train = db.objects(cls=cls, groups='train', protocol=protocol)
         self.assertEqual(len(train), Ntrain)
@@ -112,7 +113,7 @@ class AVSpoofDatabaseTest(unittest.TestCase):
         f = db.objects(cls='enroll', protocol=protocol)
         self.assertEqual(len(f), N)
         for k in f[:10]:  # only the 10 first...
-            self.assertTrue(isinstance(k.get_realaccess(), RealAccess))
+            self.assertTrue(k.is_real())
 
     @db_available
     def test09_queryEnrollmentsGrandtest(self):
@@ -210,11 +211,13 @@ class AVSpoofDatabaseTest(unittest.TestCase):
     def queryAttackType(self, protocol, attack, device, N):
 
         db = Database()
-        f = db.objects(cls='attack', support=attack, attackdevices=device, protocol=protocol)
+        f = db.objects(cls='attack', attack_type=attack, attack_devices=device, protocol=protocol)
         self.assertEqual(len(f), N)
         for k in f[:10]:  # only the 10 first...
-            k_attack = str(k.get_attack())
-            self.assertTrue((attack+'_'+device in k_attack))
+            self.assertEqual(attack, k.attack_type)
+            if device:
+                k_attack = k.get_attack()
+                self.assertEqual(attack+'_'+device, k_attack)
 
 
     @db_available
@@ -227,15 +230,15 @@ class AVSpoofDatabaseTest(unittest.TestCase):
 
     @db_available
     def test22_queryLogicalAttacksPhysicalAccess(self):
-        self.queryAttackType('physical_access', '', 'logical_access', 0)
+        self.queryAttackType('physical_access', 'logical_access', '', 0)
 
     @db_available
     def test23_queryLogicalAttacks(self):
-        self.queryAttackType('grandtest', '', 'logical_access', 55840)
+        self.queryAttackType('grandtest', 'logical_access', '', 55840)
 
     @db_available
     def test24_queryLogicalAttacksLogicalAccess(self):
-        self.queryAttackType('logical_access', '', 'logical_access', 55840)
+        self.queryAttackType('logical_access', 'logical_access', '', 55840)
 
     @db_available
     def test25_queryReplayAttacksPhysicalAccess(self):
@@ -255,8 +258,8 @@ class AVSpoofDatabaseTest(unittest.TestCase):
 
     @db_available
     def test29_queryPhysicalAccess(self):
-        self.queryAttackType('physical_access', '', 'physical_access', 55840)
+        self.queryAttackType('physical_access', 'physical_access', '', 55840)
 
     @db_available
     def test30_queryPhysicalAccessHQspeaker(self):
-        self.queryAttackType('physical_access', '', 'physical_access_HQ_speaker', 55840)
+        self.queryAttackType('physical_access', 'physical_access_HQ_speaker', '', 55840)

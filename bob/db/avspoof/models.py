@@ -51,10 +51,7 @@ class File(Base):
 
     __tablename__ = 'file'
 
-    gender_choices = ('male', 'female')
-    """Male or female speech"""
-
-    device_choices = ('laptop', 'phone1', 'phone2')
+    recording_device_choices = ('laptop', 'phone1', 'phone2')
     """List of devices used to record audio samples"""
 
     session_choices = ('sess1', 'sess2', 'sess3', 'sess4')
@@ -64,19 +61,22 @@ class File(Base):
     """Types of speech subjects were asked to say,
     pass - password, read - short text, free - 2-5 mints free speech"""
 
+    attack_type_choices = ('undefined', 'replay', 'logical_access', 'physical_access', 'physical_access_HQ_speaker')
+    """Types of attacks support"""
+
+    attack_device_choices = ('undefined', 'laptop', 'laptop_HQ_speaker', 'phone1', 'phone2', 'voice_conversion', 'speech_synthesis')
+    """Types of devices and types of access used for spoofing"""
+
+    purpose_choices = ('real', 'attack')
+    """Possible purpose of this file"""
+
     id = Column(Integer, primary_key=True)
     """Key identifier for files"""
-
-    client_id = Column(Integer, ForeignKey('client.id'))  # for SQL
-    """The client identifier to which this file is bound to"""
-
-    gender = Column(Enum(*gender_choices))
-    """The gender of the subject"""
 
     path = Column(String(200), unique=True)
     """The (unique) path to this file inside the database"""
 
-    device = Column(Enum(*device_choices))
+    recording_device = Column(Enum(*recording_device_choices))
     """The device using which the data for this file was taken"""
 
     session = Column(Enum(*session_choices))
@@ -85,17 +85,31 @@ class File(Base):
     speech = Column(Enum(*speech_choices))
     """The speech type of the data for this file was taken"""
 
+    attack_type = Column(Enum(*attack_type_choices))
+    """The attack support"""
+
+    attack_device = Column(Enum(*attack_device_choices))
+    """The attack device"""
+
+    purpose = Column(Enum(*purpose_choices))
+    """Purpose of this file"""
+
+    client_id = Column(Integer, ForeignKey('client.id'))  # for SQL
+    """The client identifier to which this file is bound to"""
+
     # for Python
     client = relationship(Client, backref=backref('files', order_by=id))
     """A direct link to the client object that this file belongs to"""
 
-    def __init__(self, client, gender, path, device, session, speech):
+    def __init__(self, client, path, recording_device, session, speech, attack_type, attack_device, purpose):
         self.client = client
         self.path = path
-        self.gender = gender
-        self.device = device
+        self.recording_device = recording_device
         self.session = session
         self.speech = speech
+        self.attack_type = attack_type
+        self.attack_device = attack_device
+        self.purpose = purpose
 
     def __repr__(self):
         return "File('%s')" % self.path
@@ -137,19 +151,20 @@ class File(Base):
     def is_real(self):
         """Returns True if this file belongs to a real access, False otherwise"""
 
-        return bool(self.realaccess)
+        return self.purpose == 'real'
 
-    def get_realaccess(self):
-        """Returns the real-access object equivalent to this file or raise"""
-        if len(self.realaccess) == 0:
-            raise RuntimeError("%s is not a real-access" % self)
-        return self.realaccess[0]
+    def is_attack(self):
+        """Returns True if this file an attack, False otherwise"""
+
+        return self.purpose == 'attack'
 
     def get_attack(self):
-        """Returns the attack object equivalent to this file or raise"""
-        if len(self.attack) == 0:
+        """Returns the full attack bame raise"""
+        if not self.is_attack():
             raise RuntimeError("%s is not an attack" % self)
-        return self.attack[0].attack_support + '_' + self.attack[0].attack_device
+        if self.attack_type == 'replay':
+            return self.attack_type + '_' + self.attack_device
+        return self.attack_device + '_' + self.attack_type
 
     def load(self, directory=None, extension='.hdf5'):
         """Loads the data at the specified location and using the given extension.
@@ -192,24 +207,6 @@ class File(Base):
         bob.io.base.save(data, path)
 
 
-# Intermediate mapping from RealAccess's to Protocol's
-realaccesses_protocols = Table('realaccesses_protocols', Base.metadata,
-                               Column('realaccess_id', Integer, ForeignKey('realaccess.id')),
-                               Column('protocol_id', Integer, ForeignKey('protocol.id')),
-                               )
-
-# Intermediate mapping from Attack's to Protocol's
-attacks_protocols = Table('attacks_protocols', Base.metadata,
-                          Column('attack_id', Integer, ForeignKey('attack.id')),
-                          Column('protocol_id', Integer, ForeignKey('protocol.id')),
-                          )
-
-
-# create column type of the protocol - verefication of spoofing
-# so when query, you dont get all protocols
-# another cross-reference table or two linking file with protocol id and the purpose (enrollment or probing)
-#
-
 class Protocol(Base):
     """AVSpoof general protocol"""
 
@@ -235,68 +232,33 @@ class Protocol(Base):
         return "Protocol('%s')" % self.name
 
 
-class RealAccess(Base):
-    """Defines Real-Accesses (licit attempts to authenticate)"""
+class ProtocolFiles(Base):
+    """Database clients, marked by an integer identifier and the set they belong
+    to"""
 
-    __tablename__ = 'realaccess'
+    __tablename__ = 'protocolfiles'
 
     id = Column(Integer, primary_key=True)
-    """Unique identifier for this real-access object"""
+    """Key identifier for Protocols"""
 
-    file_id = Column(Integer, ForeignKey('file.id'))  # for SQL
-    """The file identifier the current real-access is bound to"""
+    protocol_id = Column(String, ForeignKey('protocol.id'))  # for SQL
+    """The protocol identifier that the file is linked to"""
 
     # for Python
-    file = relationship(File, backref=backref('realaccess', order_by=id))
-    """A direct link to the :py:class:`.File` object this real-access belongs to"""
+    protocol = relationship(Protocol, backref=backref('protocolfiles', order_by=id))
+    """A direct link to the protocol object that refers to the given file"""
 
-    protocols = relationship("Protocol", secondary=realaccesses_protocols,
-                             backref='realaccess')
-    """A direct link to the protocols this file is linked to"""
+    file_id = Column(String, ForeignKey('file.id'))  # for SQL
+    """The file id that the protocol references"""
 
-    def __init__(self, file):
+    # for Python
+    file = relationship(File, backref=backref('protocolfiles', order_by=id))
+    """A direct link to the file object that the protocol references"""
+
+
+    def __init__(self, protocol, file):
+        self.protocol = protocol
         self.file = file
 
     def __repr__(self):
-        return "RealAccess('%s')" % self.file.path
-
-
-class Attack(Base):
-    """Defines Spoofing Attacks (illicit attempts to authenticate)"""
-
-    __tablename__ = 'attack'
-
-    attack_support_choices = ('replay', 'voice_conversion', 'speech_synthesis')
-    """Types of attacks support"""
-
-    attack_device_choices = ('laptop', 'laptop_HQ_speaker', 'phone1', 'phone2', 'logical_access',
-                             'physical_access', 'physical_access_HQ_speaker')
-    """Types of devices and types of access used for spoofing"""
-
-    id = Column(Integer, primary_key=True)
-    """Unique identifier for this attack"""
-
-    file_id = Column(Integer, ForeignKey('file.id'))  # for SQL
-    """The file identifier this attack is linked to"""
-
-    attack_support = Column(Enum(*attack_support_choices))
-    """The attack support"""
-
-    attack_device = Column(Enum(*attack_device_choices))
-    """The attack device"""
-
-    # for Python
-    file = relationship(File, backref=backref('attack', order_by=id))
-    """A direct link to the :py:class:`.File` object bound to this attack"""
-
-    protocols = relationship("Protocol", secondary=attacks_protocols,
-                             backref='attack')
-    """A direct link to the protocols this file is linked to"""
-
-    def __init__(self, file, attack_support, attack_device):
-        self.file = file
-        self.attack_support = attack_support
-        self.attack_device = attack_device
-
-    def __repr__(self):
-        return "Attack('%s')" % self.file.path
+        return "ProtocolFiles('%s, %s')" % (self.protocol_id, self.file_id)

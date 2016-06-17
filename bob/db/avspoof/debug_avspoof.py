@@ -52,10 +52,10 @@ class AVSpoofDatabaseTest():
     @db_available
     def queryAttackType(self, protocol, N, devices=None, support=None, attackdevices=None):
         db = Database()
-        f = db.objects(cls='real', protocol=protocol, devices=devices, clients=N)
+        f = db.objects(cls='real', protocol=protocol, recording_devices=devices, clients=N)
         print ("Real set %s" % str(f))
-        f = db.objects(cls='attack', protocol=protocol, support=support, devices=devices,
-                       attackdevices=attackdevices, clients=N)
+        f = db.objects(cls='attack', protocol=protocol, attack_type=support, recording_devices=devices,
+                       attack_devices=attackdevices, clients=N)
         print ("Attack set %s " % str(f))
 
     #        train = db.objects(cls='attack', groups='train', protocol=protocol)

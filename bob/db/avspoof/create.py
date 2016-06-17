@@ -8,7 +8,7 @@
 
 from __future__ import print_function
 
-import fnmatch
+import glob
 
 from .models import *
 
@@ -17,189 +17,135 @@ def add_clients(session, protodir, verbose):
     """Add clients to the avspoof database."""
 
     for client in open(os.path.join(protodir, 'clients-grandtest-allsupports.txt'), 'rt'):
-        s = client.strip().split(' ', 2)
-        if not s: continue  # empty line
-        id = int(s[0][1:])
-        set = s[1]
-        gender = 'female' if s[0][0] == 'f' else 'male'
+        splitline = client.strip().split(' ', 2)
+        if not splitline: continue  # empty line
+        id = int(splitline[0][1:])
+        set = splitline[1]
+        gender = 'female' if splitline[0][0] == 'f' else 'male'
         if verbose: print("Adding client %d, %s into '%s' set..." % (id, gender, set))
         session.add(Client(id, gender, set))
         session.flush()
 
 
-def add_real_lists(session, protodir, verbose):
-    """Adds all RCD filelists"""
+def add_file(session, protocol, path, group, client_id, gender,
+             recording_device, sess, speech, attack_type, attack_device, purpose):
 
-    def add_real_list(session, filename):
-        """Adds an RCD filelist and materializes RealAccess'es."""
+    db_client = session.query(Client).filter(Client.id == client_id).first()
+    if db_client is None:
+        db_client = Client(client_id, gender, group)
+        session.add(db_client)
 
-        def parse_real_filename(f):
-            """Parses the RCD filename and break it in the relevant chunks."""
+    db_file = session.query(File).filter(File.path == path).first()
+    if db_file is None:
+        db_file = File(db_client, path, recording_device, sess, speech, attack_type, attack_device, purpose)
+        session.add(db_file)
 
-            v = os.path.splitext(f)[0].split('/')
-            client_id = int(v[2][1:])
-            path = f  # keep only the filename stem
-            gender = v[1]
-            sess = v[3]  # recording session
-            device = v[4]
-            speech = v[5]
-            return [client_id, gender, path, device, sess, speech]
+    # add find the correct protocol
+    db_protocol = session.query(Protocol).filter(Protocol.name == protocol).first()
+    if db_protocol is None:
+        raise ValueError("Protocol %s should have been created before adding files to the database!" % (protocol))
 
-        for fname in open(filename, 'rt'):
-            s = fname.strip()
-            if not s: continue  # emtpy line
-            if verbose: print (s)
-            filefields = parse_real_filename(s)
-            filefields[0] = session.query(Client).filter(Client.id == filefields[0]).one()
-            #                                                    Client.gender == filefields[1]).one()
-            file = File(*filefields)
-            session.add(file)
-            realfields = [file]
-            session.add(RealAccess(*realfields))
-
-    add_real_list(session, os.path.join(protodir, 'real-grandtest-allsupports-train.txt'))
-    add_real_list(session, os.path.join(protodir, 'real-grandtest-allsupports-devel.txt'))
-    add_real_list(session, os.path.join(protodir, 'real-grandtest-allsupports-test.txt'))
+    # link file and the protocol
+    session.add(ProtocolFiles(db_protocol, db_file))
 
 
-#    add_real_list(session, os.path.join(protodir, 'real-smalltest-train.txt'))
-#    add_real_list(session, os.path.join(protodir, 'real-smalltest-devel.txt'))
-#    add_real_list(session, os.path.join(protodir, 'real-smalltest-test.txt'))
+def add_protocol_samples(session, protodir, filename, protocol, group, purpose):
 
-#    add_real_list(session, os.path.join(protodir, 'real-train.txt'))
-#    add_real_list(session, os.path.join(protodir, 'real-devel.txt'))
-#    add_real_list(session, os.path.join(protodir, 'real-test.txt'))
+    def parse_real_path(splitline):
+        """Parses the RCD filename and break it in the relevant chunks."""
 
-# add_real_list(session, os.path.join(protodir, 'recognition-train.txt'))
-# add_real_list(session, os.path.join(protodir, 'recognition-devel.txt'))
-# add_real_list(session, os.path.join(protodir, 'recognition-test.txt'))
+        client_id = int(splitline[2][1:])
+        gender = splitline[1]
+        sess = splitline[3]  # recording session
+        recording_device = splitline[4]
+        speech = splitline[5]
+        return client_id, gender, recording_device, sess, speech
 
-def add_attack_lists(session, protodir, verbose):
-    """Adds all RAD filelists"""
+    def parse_attack_path(splitline):
+        """Parses the RAD filename and break it in the relevant chunks."""
 
-    def add_attack_list(session, filename):
-        """Adds an RAD filelist and materializes Attacks."""
+        # parse the line
+        attack_parts = splitline[1].split('_')
+        if attack_parts[0] == "replay":
+            attack_type = attack_parts[0]  # replay attack
+            attack_device = "_".join(attack_parts[1:])  # the rest of the attack
+        else:
+            attack_device = "_".join(attack_parts[0:2])  # attacks consisting of more than one word
+            attack_type = "_".join(attack_parts[2:])
 
-        def parse_attack_filename(f):
-            """Parses the RAD filename and break it in the relevant chunks."""
-
-            v = os.path.splitext(f)[0].split('/')
-            # parse attacks first
-            attack_parts = v[1].split('_')
-            if attack_parts[0] == "replay":
-                attack_support = attack_parts[0]  # replay attack
-                attack_device = "_".join(attack_parts[1:])  # the rest of the attack
+        client_id = int(splitline[3][1:])
+        gender = splitline[2]
+        # speech synthesis is strangely generated, diff from all other files
+        if attack_device == "speech_synthesis":
+            sstr = splitline[4].split('_')
+            if "Sess" in sstr[1]:  # the string is Session#
+                speech = "read"
+                sess = "sess" + sstr[1][-1]
+            elif "Pass" in sstr[1]:
+                speech = "pass"
+                sess = "sess2"  # it's not specified in the file name, so assume 2
             else:
-                attack_support = "_".join(attack_parts[0:2])  # attacks consisting of more than one word
-                attack_device = "_".join(attack_parts[2:])
+                speech = "free"
+                sess = "sess2"
+            recording_device= "laptop"  # speech synthesis is from laptop data
+        else:  # all the rest of the attacks
+            sess = splitline[4]  # recording session
+            recording_device = splitline[5]
+            speech = splitline[6]
+        return client_id, gender, recording_device, sess, speech, attack_type, attack_device
 
-            client_id = int(v[3][1:])
-            path = f  # keep only the filename stem
-            gender = v[2]
-            # speech synthesis is strangely generated, diff from all other files
-            if attack_support == "speech_synthesis":
-                sstr = v[4].split('_')
-                if "Sess" in sstr[1]:  # the string is Session#
-                    speech = "read"
-                    sess = "sess" + sstr[1][-1]
-                elif "Pass" in sstr[1]:
-                    speech = "pass"
-                    sess = "sess2"  # it's not specified in the file name, so assume 2
-                else:
-                    speech = "free"
-                    sess = "sess2"
-                device = "laptop"  # speech synthesis is from laptop data
-            else:  # all the rest of the attacks
-                sess = v[4]  # recording session
-                device = v[5]
-                speech = v[6]
+    # read and add file to the database
+    with open(os.path.join(protodir, filename)) as f:
+        lines = f.readlines()
 
-            return [client_id, gender, path, device, sess, speech], [attack_support, attack_device]
+    for line in lines:
+        # each line is a relative sample path, which contains all necessary information
+        splitline = (line.strip()).split('/')
+        if purpose == 'attack':
+            client_id, gender, recording_device, sess, speech, attack_type, attack_device = parse_attack_path(splitline)
+        elif purpose == 'real':
+            client_id, gender, recording_device, sess, speech = parse_real_path(splitline)
+            attack_type = 'undefined'
+            attack_device = 'undefined'
+        else:
+            raise ValueError("Incorrect purpose %s in file %s. Only 'attack' or 'real' purposes are accepted." %
+                             (purpose, filename))
 
-        for fname in open(filename, 'rt'):
-            s = fname.strip()
-            if not s: continue  # emtpy line
-            if verbose: print (s)
-            filefields, attackfields = parse_attack_filename(s)
-            filefields[0] = session.query(Client).filter(
-                Client.id == filefields[0] and \
-                Client.gender == filefields[1]).one()
-            file = File(*filefields)
-            session.add(file)
-            attackfields.insert(0, file)
-            session.add(Attack(*attackfields))
-
-        #    add_attack_list(session,os.path.join(protodir, 'attack-smalltest-allsupports-train.txt'))
-        #    add_attack_list(session,os.path.join(protodir, 'attack-smalltest-allsupports-devel.txt'))
-        #    add_attack_list(session,os.path.join(protodir, 'attack-smalltest-allsupports-test.txt'))
-
-    add_attack_list(session, os.path.join(protodir, 'attack-grandtest-allsupports-train.txt'))
-    add_attack_list(session, os.path.join(protodir, 'attack-grandtest-allsupports-devel.txt'))
-    add_attack_list(session, os.path.join(protodir, 'attack-grandtest-allsupports-test.txt'))
+        # all the lines have the same format
+        add_file(session, protocol, line.strip(), group, client_id,
+                 gender, recording_device, sess, speech, attack_type, attack_device, purpose)
 
 
-def define_protocols(session, protodir, verbose):
+def init_database(session, protodir, protocol_file_list):
     """Defines all available protocols"""
 
-    # figures out which protocols to use
-    valid = {}
+    for filename in protocol_file_list:
+        # skip hidden files
+        # if filename.startswith('.'):
+        #     continue
+        # skip directories
+        # if os.path.isdir(os.path.join(protodir, filename)):
+        #     continue
 
-    for fname in fnmatch.filter(os.listdir(protodir), 'attack-*-allsupports-train.txt'):
-        s = fname.split('-', 4)
+        # a sample file name looks like this: attack-grandtest-allsupports-test.txt
+        print ("Processing file %s" % filename)
+        # remove extension
+        fname = os.path.splitext(os.path.basename(filename.strip()))[0]
+        # parse the name
+        splitline = fname.split('-')
+        print ("Basename %s" % fname)
 
-        consider = True
-        files = {}
+        group = splitline[3]  # train, devel, or test
+        protocol = splitline[1]
+        purpose = splitline[0]  # real or attack
 
-        for grp in ('train', 'devel', 'test'):
-
-            # check attack file
-            attack = os.path.join(protodir, 'attack-%s-allsupports-%s.txt' % (s[1], grp))
-            if not os.path.exists(attack):
-                if verbose:
-                    print("Not considering protocol %s as attack list '%s' was not found" % (s[1], attack))
-                consider = False
-
-            # check real file
-            real = os.path.join(protodir, 'real-%s-allsupports-%s.txt' % (s[1], grp))
-            if not os.path.exists(real):
-                alt_real = os.path.join(protodir, 'real-%s.txt' % (grp,))
-                if not os.path.exists(alt_real):
-                    if verbose:
-                        print("Not considering protocol %s as real list '%s' or '%s' were not found" %
-                              (s[1], real, alt_real))
-                    consider = False
-                else:
-                    real = alt_real
-
-            if consider: files[grp] = (attack, real)
-
-        if consider: valid[s[1]] = files
-
-    for protocol, groups in valid.items():
-        if verbose: print("Creating protocol '%s'..." % protocol)
-
-        # create protocol on the protocol table
-        obj = Protocol(name=protocol)
-
-        for grp, flist in groups.items():
-
-            counter = 0
-            for fname in open(flist[0], 'rt'):
-                s = os.path.splitext(fname.strip())[0]
-                q = session.query(Attack).join(File).filter(File.path == s).one()
-                q.protocols.append(obj)
-                counter += 1
-            if verbose: print("  -> %5s/%-6s: %d files" % (grp, "attack", counter))
-
-            counter = 0
-            for fname in open(flist[1], 'rt'):
-                s = os.path.splitext(fname.strip())[0]
-                q = session.query(RealAccess).join(File).filter(File.path == s).one()
-                q.protocols.append(obj)
-                counter += 1
-            if verbose: print("  -> %5s/%-6s: %d files" % (grp, "real", counter))
-
-        session.add(obj)
+        # add protocol only if it does not exist
+        db_protocol = session.query(Protocol).filter(Protocol.name == protocol).first()
+        if db_protocol is None:
+            session.add(Protocol(protocol))
+            session.flush()
+        # add samples from the protocol file to the database
+        add_protocol_samples(session, protodir, filename, protocol, group, purpose)
 
 
 def create_tables(args):
@@ -209,9 +155,9 @@ def create_tables(args):
 
     engine = create_engine_try_nolock(args.type, args.files[0], echo=(args.verbose >= 2))
     Client.metadata.create_all(engine)
-    RealAccess.metadata.create_all(engine)
-    Attack.metadata.create_all(engine)
+    File.metadata.create_all(engine)
     Protocol.metadata.create_all(engine)
+    ProtocolFiles.metadata.create_all(engine)
 
 
 # Driver API
@@ -234,11 +180,14 @@ def create(args):
 
     # the real work...
     create_tables(args)
+
     s = session_try_nolock(args.type, args.files[0], echo=(args.verbose >= 2))
     add_clients(s, args.protodir, args.verbose)
-    add_real_lists(s, args.protodir, args.verbose)
-    add_attack_lists(s, args.protodir, args.verbose)
-    define_protocols(s, args.protodir, args.verbose)
+
+    # ASV protocol files
+    protocol_file_list = glob.glob(os.path.join(args.protodir, '*-allsupports-*'))
+    init_database(s, args.protodir, protocol_file_list)
+
     s.commit()
     s.close()
 

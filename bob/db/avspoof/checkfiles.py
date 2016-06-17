@@ -21,12 +21,12 @@ def checkfiles(args):
 
     r = db.objects(
         protocol=args.protocol,
-        support=args.support,
+        attack_type=args.support,
         groups=args.group,
         cls=args.cls,
-        devices=args.device,
+        recording_devices=args.device,
         sessions=args.sessions,
-        attackdevices=args.attackdevice,
+        attack_devices=args.attackdevice,
         clients=args.client,
     )
 
@@ -77,25 +77,32 @@ def add_command(subparsers):
     parser.add_argument('-e', '--extension', dest="extension", default='',
                         help="if given, this extension will be appended to every entry checked (defaults to '%(default)s')")
     parser.add_argument('-c', '--class', dest="cls", default='',
-                        help="if given, limits the check to a particular subset of the data that corresponds to the given class (defaults to '%(default)s')",
+                        help="if given, limits the check to a particular subset of the data that corresponds to "
+                             "the given class (defaults to '%(default)s')",
                         choices=('real', 'attack', 'enroll'))
     parser.add_argument('-g', '--group', dest="group", default='',
-                        help="if given, this value will limit the check to those files belonging to a particular protocol group, e.g., train, dev, and eval. (defaults to '%(default)s')",
+                        help="if given, this value will limit the check to those files belonging to a particular "
+                             "protocol group, e.g., train, dev, and eval. (defaults to '%(default)s')",
                         choices=db.groups())
     parser.add_argument('-s', '--support', dest="support", default='',
-                        help="if given, this value will limit the check to those files using this type of attack support, e.g., replay_attack or voice_conversion. (defaults to '%(default)s')",
-                        choices=db.attack_supports())
+                        help="if given, this value will limit the check to those files using this type of attack "
+                             "support, e.g., replay_attack or voice_conversion. (defaults to '%(default)s')",
+                        choices=db.attack_types())
     parser.add_argument('-x', '--protocol', dest="protocol", default='',
-                        help="if given, this value will limit the check to those files for a given protocol. (defaults to '%(default)s')",
+                        help="if given, this value will limit the check to those files for a given protocol. "
+                             "(defaults to '%(default)s')",
                         choices=protocols)
     parser.add_argument('-v', '--device', dest="device", default='',
-                        help="if given, this value will limit the check to those samples recorded with the specified device. (defaults to '%(default)s')",
+                        help="if given, this value will limit the check to those samples recorded with the specified "
+                             "device. (defaults to '%(default)s')",
                         choices=db.devices())
     parser.add_argument('-n', '--session', dest="sessions", default='',
-                        help="if given, this value will limit the check to those samples recorded during specific session. (defaults to '%(default)s')",
+                        help="if given, this value will limit the check to those samples recorded during specific "
+                             "ession. (defaults to '%(default)s')",
                         choices=db.sessions())
     parser.add_argument('-k', '--attackdevice', dest="attackdevice", default='',
-                        help="if given, this value will limit the check to the attacks by the specified devices. (defaults to '%(default)s')",
+                        help="if given, this value will limit the check to the attacks by the specified devices. "
+                             "(defaults to '%(default)s')",
                         choices=db.attack_devices())
     parser.add_argument('-C', '--client', dest="client", default=None, type=int,
                         help="if given, limits the dump to a particular client (defaults to '%(default)s')",

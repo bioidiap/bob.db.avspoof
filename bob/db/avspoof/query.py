@@ -63,17 +63,17 @@ class Database(object):
                                " Create it and then try re-connecting using Database.connect()" % (
                                INFO.name(), SQLITE_FILE))
 
-    def objects(self, support=Attack.attack_support_choices,
-                protocol='grandtest', groups=Client.set_choices, cls=('attack', 'real', 'enroll', 'probe'),
-                devices=File.device_choices, sessions=File.session_choices, gender=Client.gender_choices,
-                attackdevices=Attack.attack_device_choices, clients=None):
+    def objects(self, attack_type=File.attack_type_choices,
+                protocol='grandtest', groups=Client.set_choices, cls=('real',),
+                recording_devices=File.recording_device_choices, sessions=File.session_choices, gender=Client.gender_choices,
+                attack_devices=File.attack_device_choices, clients=None):
         """Returns a list of unique :py:class:`.File` objects for the specific
         query by the user.
 
         Keyword parameters:
 
-        support
-            One of the valid attack types as returned by models.Attack.attack_supports() or all,
+        attack_type
+            One of the valid attack types as returned by models.Attack.attack_types() or all,
             as a tuple.  If you set this parameter to an empty string or the value
             None, we reset it to the default, which is to get all.
 
@@ -91,10 +91,10 @@ class Database(object):
             Either "attack", "real", "enroll", "probe", or a combination of those (in a
             tuple). Defines the class of data to be retrieved.  If you set this
             parameter to an empty string or the value None, we reset it to the
-            default, ("real", "attack", "enroll", "probe").
+            default, ("real").
 
-        devices
-            One of the devices used to record the data (laptop, phone1, and phone2)
+        recording_devices
+            One of the recording_devices used to record the data (laptop, phone1, and phone2)
             or a combination of them (in a tuple), which is also the default.
 
         clients
@@ -116,12 +116,12 @@ class Database(object):
         gender = self.check_parameters_for_validity(gender, "gender", VALID_GENDER, None)
 
         # check if supports set are valid
-        VALID_SUPPORTS = self.attack_supports()
-        support = self.check_parameters_for_validity(support, "support", VALID_SUPPORTS, None)
+        VALID_SUPPORTS = self.attack_types()
+        attack_type = self.check_parameters_for_validity(attack_type, "attack_type", VALID_SUPPORTS, None)
 
         # check if supports set are valid
         VALID_ATTACKDEVICES = self.attack_devices()
-        attackdevices = self.check_parameters_for_validity(attackdevices, "attackdevice", VALID_ATTACKDEVICES, None)
+        attack_devices = self.check_parameters_for_validity(attack_devices, "attack_device", VALID_ATTACKDEVICES, None)
 
         # by default, do NOT grab enrollment data from the database
         VALID_CLASSES = ('real', 'attack', 'enroll', 'probe')
@@ -137,7 +137,7 @@ class Database(object):
 
         # checks if the device is valid
         VALID_DEVICES = self.devices()
-        devices = self.check_parameters_for_validity(devices, "device", VALID_DEVICES, None)
+        recording_devices = self.check_parameters_for_validity(recording_devices, "recording_device", VALID_DEVICES, None)
 
         # checks if the device is valid
         VALID_SESSIONS = self.sessions()
@@ -146,59 +146,32 @@ class Database(object):
         # now query the database
         retval = []
 
-        # real-accesses are simpler to query - this is the real set for antispoofing systems
-        if 'real' in cls:
-            q = self.session.query(File).join(RealAccess).join((Protocol, RealAccess.protocols)).join(Client)
-            if groups: q = q.filter(Client.set.in_(groups))
-            if clients: q = q.filter(Client.id.in_(clients))
-            if gender: q = q.filter(Client.gender.in_(gender))
-            if devices: q = q.filter(File.device.in_(devices))
-            if sessions: q = q.filter(File.session.in_(sessions))
-            q = q.filter(Protocol.name.in_(protocol))
-            q = q.order_by(File.path)
-            retval += list(q)
+        # figure out purposes from the classes we get
+        purpose = ('real', )
+        if 'attack' in cls:
+            purpose = ('attack',)
 
-        # real-accesses, sess1 and laptop only - this is the enrollment subset for verification systems (all protocols)
+        # init the query
+        q = self.session.query(File).join(ProtocolFiles).join((Protocol, ProtocolFiles.protocol)).join(Client)
         if 'enroll' in cls:
-            q = self.session.query(File).join(RealAccess).join((Protocol, RealAccess.protocols)).join(Client)
-            if groups: q = q.filter(Client.set.in_(groups))
-            if clients: q = q.filter(Client.id.in_(clients))
-            if gender: q = q.filter(Client.gender.in_(gender))
             from sqlalchemy import and_
             # only data from sess1 and laptop is in enrollment
-            q = q.filter(and_(File.device == 'laptop', File.session == 'sess1'))
-            q = q.filter(Protocol.name.in_(protocol))
-            q = q.order_by(File.path)
-            # q = q.order_by(Client.id, File.session, File.device, File.speech)
-            retval += list(q)
-
-        # all real-accesses except for enroll - this is the probe subset for verification systems (licit protocol)
-        # notice no filtering per client, since for every client we return all non-enrollment files
+            q = q.filter(and_(File.recording_device == 'laptop', File.session == 'sess1'))
         if 'probe' in cls:
-            q = self.session.query(File).join(RealAccess).join((Protocol, RealAccess.protocols)).join(Client)
-            if groups: q = q.filter(Client.set.in_(groups))
-            # if clients: q = q.filter(Client.id.in_(clients))
-            if gender: q = q.filter(Client.gender.in_(gender))
-            # all data except the one from sess1 and laptop
             from sqlalchemy import or_
-            q = q.filter(or_(File.device != 'laptop', File.session != 'sess1'))
-            q = q.filter(Protocol.name.in_(protocol))
-            q = q.order_by(File.path)
-            retval += list(q)
-
-        # this is the attacks set for antispoofing systems or probe set for verification systems (spoof protocol)
-        if 'attack' in cls:
-            q = self.session.query(File).join(Attack).join((Protocol, Attack.protocols)).join(Client)
-            if groups: q = q.filter(Client.set.in_(groups))
-            if clients: q = q.filter(Client.id.in_(clients))
-            if gender: q = q.filter(Client.gender.in_(gender))
-            if support: q = q.filter(Attack.attack_support.in_(support))
-            if attackdevices: q = q.filter(Attack.attack_device.in_(attackdevices))
-            if devices: q = q.filter(File.device.in_(devices))
-            if sessions: q = q.filter(File.session.in_(sessions))
-            q = q.filter(Protocol.name.in_(protocol))
-            q = q.order_by(File.path)
-            retval += list(q)
+            # all data except the one from sess1 and laptop
+            q = q.filter(or_(File.recording_device != 'laptop', File.session != 'sess1'))
+        if groups: q = q.filter(Client.set.in_(groups))
+        if clients: q = q.filter(Client.id.in_(clients))
+        if gender: q = q.filter(Client.gender.in_(gender))
+        if attack_type: q = q.filter(File.attack_type.in_(attack_type))
+        if attack_devices: q = q.filter(File.attack_device.in_(attack_devices))
+        if recording_devices: q = q.filter(File.recording_device.in_(recording_devices))
+        if sessions: q = q.filter(File.session.in_(sessions))
+        q = q.filter(File.purpose.in_(purpose))
+        q = q.filter(Protocol.name.in_(protocol))
+        q = q.order_by(File.path)
+        retval += list(q)
 
         return retval
 
@@ -319,22 +292,22 @@ class Database(object):
     def devices(self):
         """Returns devices used in the database"""
 
-        return File.device_choices
+        return File.recording_device_choices
 
     def sessions(self):
         """Returns sessions used in the database"""
 
         return File.session_choices
 
-    def attack_supports(self):
+    def attack_types(self):
         """Returns attack supports available in the database"""
 
-        return Attack.attack_support_choices
+        return File.attack_type_choices
 
     def attack_devices(self):
         """Returns attack devices available in the database"""
 
-        return Attack.attack_device_choices
+        return File.attack_device_choices
 
     def file_speech(self):
         """Returns attack sample types available in the database"""
