@@ -153,14 +153,16 @@ class Database(object):
 
         # init the query
         q = self.session.query(File).join(ProtocolFiles).join((Protocol, ProtocolFiles.protocol)).join(Client)
-        if 'enroll' in cls:
-            from sqlalchemy import and_
-            # only data from sess1 and laptop is in enrollment
-            q = q.filter(and_(File.recording_device == 'laptop', File.session == 'sess1'))
-        if 'probe' in cls:
-            from sqlalchemy import or_
-            # all data except the one from sess1 and laptop
-            q = q.filter(or_(File.recording_device != 'laptop', File.session != 'sess1'))
+        # if both enroll and probe data is requested, then do not do anything
+        if not ('enroll' and 'probe' in cls):  # only when one of them is requested
+            if 'enroll' in cls:  # if only enroll
+                from sqlalchemy import and_
+                # only data from sess1 and laptop is in enrollment
+                q = q.filter(and_(File.recording_device == 'laptop', File.session == 'sess1'))
+            elif 'probe' in cls:  # if only probe
+                from sqlalchemy import or_
+                # all data except the one from sess1 and laptop
+                q = q.filter(or_(File.recording_device != 'laptop', File.session != 'sess1'))
         if groups: q = q.filter(Client.set.in_(groups))
         if clients: q = q.filter(Client.id.in_(clients))
         if gender: q = q.filter(Client.gender.in_(gender))

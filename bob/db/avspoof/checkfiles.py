@@ -79,7 +79,7 @@ def add_command(subparsers):
     parser.add_argument('-c', '--class', dest="cls", default='',
                         help="if given, limits the check to a particular subset of the data that corresponds to "
                              "the given class (defaults to '%(default)s')",
-                        choices=('real', 'attack', 'enroll'))
+                        choices=('real', 'attack', 'enroll', 'probe'))
     parser.add_argument('-g', '--group', dest="group", default='',
                         help="if given, this value will limit the check to those files belonging to a particular "
                              "protocol group, e.g., train, dev, and eval. (defaults to '%(default)s')",
