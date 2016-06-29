@@ -178,6 +178,8 @@ class Database(object):
             retval += list(q)
 
         if 'probe' in cls:  # if we need probe data (a large subset of real data)
+            # init the query
+            q = self.session.query(File).join(ProtocolFiles).join((Protocol, ProtocolFiles.protocol)).join(Client)
             from sqlalchemy import or_
             # all data except the one from sess1 and laptop
             q = q.filter(or_(File.recording_device != 'laptop', File.session != 'sess1'))
