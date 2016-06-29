@@ -146,34 +146,67 @@ class Database(object):
         # now query the database
         retval = []
 
-        # figure out purposes from the classes we get
-        purpose = ('real', )
+        # first, check the real data
+        purpose = ('real',)
+        if 'real' in cls:  # if we need enroll data (a small subset of real data)
+            # init the query
+            q = self.session.query(File).join(ProtocolFiles).join((Protocol, ProtocolFiles.protocol)).join(Client)
+            if groups: q = q.filter(Client.set.in_(groups))
+            if clients: q = q.filter(Client.id.in_(clients))
+            if gender: q = q.filter(Client.gender.in_(gender))
+            if recording_devices: q = q.filter(File.recording_device.in_(recording_devices))
+            if sessions: q = q.filter(File.session.in_(sessions))
+            q = q.filter(File.purpose.in_(purpose))
+            q = q.filter(Protocol.name.in_(protocol))
+            q = q.order_by(File.path)
+            retval += list(q)
+
+        if 'enroll' in cls:  # if we need enroll data (a small subset of real data)
+            # init the query
+            q = self.session.query(File).join(ProtocolFiles).join((Protocol, ProtocolFiles.protocol)).join(Client)
+            from sqlalchemy import and_
+            # only data from sess1 and laptop is in enrollment
+            q = q.filter(and_(File.recording_device == 'laptop', File.session == 'sess1'))
+            if groups: q = q.filter(Client.set.in_(groups))
+            if clients: q = q.filter(Client.id.in_(clients))
+            if gender: q = q.filter(Client.gender.in_(gender))
+            if recording_devices: q = q.filter(File.recording_device.in_(recording_devices))
+            if sessions: q = q.filter(File.session.in_(sessions))
+            q = q.filter(File.purpose.in_(purpose))
+            q = q.filter(Protocol.name.in_(protocol))
+            q = q.order_by(File.path)
+            retval += list(q)
+
+        if 'probe' in cls:  # if we need probe data (a large subset of real data)
+            from sqlalchemy import or_
+            # all data except the one from sess1 and laptop
+            q = q.filter(or_(File.recording_device != 'laptop', File.session != 'sess1'))
+            if groups: q = q.filter(Client.set.in_(groups))
+            if clients: q = q.filter(Client.id.in_(clients))
+            if gender: q = q.filter(Client.gender.in_(gender))
+            if recording_devices: q = q.filter(File.recording_device.in_(recording_devices))
+            if sessions: q = q.filter(File.session.in_(sessions))
+            q = q.filter(File.purpose.in_(purpose))
+            q = q.filter(Protocol.name.in_(protocol))
+            q = q.order_by(File.path)
+            retval += list(q)
+
         if 'attack' in cls:
             purpose = ('attack',)
-
-        # init the query
-        q = self.session.query(File).join(ProtocolFiles).join((Protocol, ProtocolFiles.protocol)).join(Client)
-        # if both enroll and probe data is requested, then do not do anything
-        if not ('enroll' and 'probe' in cls):  # only when one of them is requested
-            if 'enroll' in cls:  # if only enroll
-                from sqlalchemy import and_
-                # only data from sess1 and laptop is in enrollment
-                q = q.filter(and_(File.recording_device == 'laptop', File.session == 'sess1'))
-            elif 'probe' in cls:  # if only probe
-                from sqlalchemy import or_
-                # all data except the one from sess1 and laptop
-                q = q.filter(or_(File.recording_device != 'laptop', File.session != 'sess1'))
-        if groups: q = q.filter(Client.set.in_(groups))
-        if clients: q = q.filter(Client.id.in_(clients))
-        if gender: q = q.filter(Client.gender.in_(gender))
-        if attack_type: q = q.filter(File.attack_type.in_(attack_type))
-        if attack_devices: q = q.filter(File.attack_device.in_(attack_devices))
-        if recording_devices: q = q.filter(File.recording_device.in_(recording_devices))
-        if sessions: q = q.filter(File.session.in_(sessions))
-        q = q.filter(File.purpose.in_(purpose))
-        q = q.filter(Protocol.name.in_(protocol))
-        q = q.order_by(File.path)
-        retval += list(q)
+            # init the query
+            q = self.session.query(File).join(ProtocolFiles).join((Protocol, ProtocolFiles.protocol)).join(Client)
+            # if both enroll and probe data is requested, then do not do anything
+            if groups: q = q.filter(Client.set.in_(groups))
+            if clients: q = q.filter(Client.id.in_(clients))
+            if gender: q = q.filter(Client.gender.in_(gender))
+            if attack_type: q = q.filter(File.attack_type.in_(attack_type))
+            if attack_devices: q = q.filter(File.attack_device.in_(attack_devices))
+            if recording_devices: q = q.filter(File.recording_device.in_(recording_devices))
+            if sessions: q = q.filter(File.session.in_(sessions))
+            q = q.filter(File.purpose.in_(purpose))
+            q = q.filter(Protocol.name.in_(protocol))
+            q = q.order_by(File.path)
+            retval += list(q)
 
         return retval
 
