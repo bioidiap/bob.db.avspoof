@@ -21,8 +21,8 @@ setup(
     name='bob.db.avspoof',
     version=version,
     description='Audio AVspoof Attack Database Access API for Bob',
-    url='http://github.com/bioidiap/bob.db.avspoof',
-    license='GPLv3',
+    url='http://gitlab.idiap.ch/bob/bob.db.avspoof',
+    license='BSD',
     author='Pavel Korshunov',
     author_email='pavel.korshunov@idiap.ch',
     long_description=open('README.rst').read(),
@@ -33,8 +33,6 @@ setup(
     zip_safe=False,
 
     install_requires=install_requires,
-
-
 
     entry_points={
         'console_scripts': [
@@ -60,7 +58,7 @@ setup(
         'Framework :: Bob',
         'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
