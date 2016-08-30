@@ -6,19 +6,13 @@
  Python API
 ============
 
-This section includes information about the Python API of ``bob.db.avspoof.verification`` and
-``bob.db.avspoof.spoofing`` database interfaces.
-
-.. autosummary::
-   bob.db.avspoof.verification
-   bob.db.avspoof.spoofing
 
 API for verification experiments
 --------------------------------
 
-.. automodule:: bob.db.avspoof.verification
+See implementation of the verification interface inside `bob.bio.db` package.
 
 API for anti-spoofing experiments
 ---------------------------------
 
-.. automodule:: bob.db.avspoof.spoofing
+See implementation of the verification interface inside `bob.pad.db` package.
