@@ -10,9 +10,9 @@
 API for verification experiments
 --------------------------------
 
-See implementation of the verification interface inside `bob.bio.db` package.
+See implementation of the verification interface inside `bob.bio.base` package.
 
 API for anti-spoofing experiments
 ---------------------------------
 
-See implementation of the verification interface inside `bob.pad.db` package.
+See implementation of the verification interface inside `bob.pad.base` package.
