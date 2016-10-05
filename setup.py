@@ -42,11 +42,6 @@ setup(
         'bob.db': [
             'avspoof = bob.db.avspoof.driver:Interface',
         ],
-
-        # antispoofing database declaration
-        'antispoofing.utils.db': [
-            'avspoof = bob.db.avspoof.spoofing:Database',
-        ],
     },
 
     classifiers=[
