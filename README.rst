@@ -9,9 +9,9 @@
    :target: https://gitlab.idiap.ch/bob/bob.db.avspoof/commits/master
 .. image:: https://img.shields.io/badge/gitlab-project-0000c0.svg
    :target: https://gitlab.idiap.ch/bob/bob.db.avspoof
-.. image:: http://img.shields.io/pypi/v/bob.db.avspoof.png
+.. image:: http://img.shields.io/pypi/v/bob.db.avspoof.svg
    :target: https://pypi.python.org/pypi/bob.db.avspoof
-.. image:: http://img.shields.io/pypi/dm/bob.db.avspoof.png
+.. image:: http://img.shields.io/pypi/dm/bob.db.avspoof.svg
    :target: https://pypi.python.org/pypi/bob.db.avspoof
 
 
