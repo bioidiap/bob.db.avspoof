@@ -5,10 +5,10 @@
    :target: http://pythonhosted.org/bob.db.avspoof/index.html
 .. image:: http://img.shields.io/badge/docs-latest-orange.svg
    :target: https://www.idiap.ch/software/bob/docs/latest/bob/bob.db.avspoof/master/index.html
-.. image:: https://gitlab.idiap.ch/bob/bob.db.avspoof/badges/master/build.svg
-   :target: https://gitlab.idiap.ch/bob/bob.db.avspoof/commits/master
-.. image:: https://gitlab.idiap.ch/bob/bob.db.avspoof/badges/master/coverage.svg
-   :target: https://gitlab.idiap.ch/bob/bob.db.avspoof/commits/master
+.. image:: https://gitlab.idiap.ch/bob/bob.db.avspoof/badges/v2.2.7/build.svg
+   :target: https://gitlab.idiap.ch/bob/bob.db.avspoof/commits/v2.2.7
+.. image:: https://gitlab.idiap.ch/bob/bob.db.avspoof/badges/v2.2.7/coverage.svg
+   :target: https://gitlab.idiap.ch/bob/bob.db.avspoof/commits/v2.2.7
 .. image:: https://img.shields.io/badge/gitlab-project-0000c0.svg
    :target: https://gitlab.idiap.ch/bob/bob.db.avspoof
 .. image:: http://img.shields.io/pypi/v/bob.db.avspoof.svg
