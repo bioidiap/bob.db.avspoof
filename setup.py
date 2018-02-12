@@ -35,9 +35,6 @@ setup(
     install_requires=install_requires,
 
     entry_points={
-        'console_scripts': [
-            'debug_avspoof = bob.db.avspoof.debug_avspoof:main',
-        ],
         # bob database declaration
         'bob.db': [
             'avspoof = bob.db.avspoof.driver:Interface',
