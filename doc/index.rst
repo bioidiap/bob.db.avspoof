@@ -11,8 +11,7 @@
 For verification experiments, protocols `licit` (only genuine speech samples are used in train, dev, and eval sets)
 and `spoof` (train and dev sets contain only genuine data, while eval contains only attacks) are supported by this package.
 
-==========================================
- AVspoof Database Anti-spoofing Protocols
+AVspoof Database Anti-spoofing Protocols
 ==========================================
 
 For anti-spoofing experiments, several protocols are supported which for each train, dev, or eval sets return two types of data
@@ -22,8 +21,7 @@ the audio into physical microphone), and `logical_access` (only the generated vo
 excluding samples that were played back to the microphone).
 
 
-=======================================================
- Speaker recognition protocol on the AVspoof Database
+Speaker recognition protocol on the AVspoof Database
 =======================================================
 
 AVspoof_ is intended to provide stable, non-biased spoofing attacks in order for researchers to test both their ASV systems and anti-spoofing algorithms. The attacks are created based on newly acquired audio recordings. The data acquisition process lasted approximately two months with 44 persons, each participating in several sessions configured in different environmental conditions and setups. After the collection of the data, the attacks, more precisely, replay, voice conversion and speech synthesis attacks were generated. 
