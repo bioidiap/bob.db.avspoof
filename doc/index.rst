@@ -11,7 +11,6 @@
 For verification experiments, protocols `licit` (only genuine speech samples are used in train, dev, and eval sets)
 and `spoof` (train and dev sets contain only genuine data, while eval contains only attacks) are supported by this package.
 
-==========================================
  AVspoof Database Anti-spoofing Protocols
 ==========================================
 
@@ -22,7 +21,6 @@ the audio into physical microphone), and `logical_access` (only the generated vo
 excluding samples that were played back to the microphone).
 
 
-=======================================================
  Speaker recognition protocol on the AVspoof Database
 =======================================================
 
